@@ -121,12 +121,12 @@ jobs:
           gh config set prompt disabled
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-          if ! gh release view "$TAG"; then
+          if ! gh release view --repo "${{ github.repository }}" "$TAG"; then
               # tag does not exist
-              gh release create "$TAG" -d -t "$TAG"
+              gh release create --repo "${{ github.repository }}" "$TAG" -d -t "$TAG"
           fi
 
           ARTIFACT_NAME="version-${{ needs.setup.outputs.build_name }}.txt"
           mv version.txt "${ARTIFACT_NAME}"
-          gh release upload --clobber "$TAG" "${ARTIFACT_NAME}"
+          gh release upload --repo "${{ github.repository }}" --clobber "$TAG" "${ARTIFACT_NAME}"
 
