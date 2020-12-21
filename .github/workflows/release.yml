@@ -107,7 +107,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    if: ${{ needs.setup.outputs.tag != "" }}
+    if: ${{ needs.setup.outputs.tag != '' }}
     needs: 
       - setup
       - build
