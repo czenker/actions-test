@@ -131,3 +131,4 @@ jobs:
           files: |
             version-${{ needs.setup.outputs.build_name }}.txt
           gzip: false
+          allow_override: true
