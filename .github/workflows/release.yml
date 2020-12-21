@@ -18,6 +18,8 @@ jobs:
       committer_name: ${{ steps.calc.outputs.committer_name }}
       committer_email: ${{ steps.calc.outputs.committer_email }}
       is_head: ${{ steps.calc.outputs.is_head }}
+      branch: ${{ steps.calc.outputs.branch }}
+      is_release_tag: ${{ steps.calc.outputs.is_release_tag }}
 
     steps:
       - name: Checkout the source code
@@ -30,9 +32,22 @@ jobs:
           echo "::set-output name=build_name::$(git describe --tags --always)"
           echo "::set-output name=author_name::${{ github.event.commits[0].author.name }}"
           echo "::set-output name=author_email::${{ github.event.commits[0].author.email }}"
-          echo "::set-output name=commiter_name::${{ github.event.commits[0].committer.name }}"
-          echo "::set-output name=commiter_email::${{ github.event.commits[0].committer.email }}"
+          echo "::set-output name=committer_name::${{ github.event.commits[0].committer.name }}"
+          echo "::set-output name=committer_email::${{ github.event.commits[0].committer.email }}"
           echo "::set-output name=is_head::${{ github.event.commits[0].id == github.event.head_commit.id }}"
+          if [[ "${GITHUB_REF}" == refs/heads/* ]]; then
+            echo "::set-output name=branch::${GITHUB_REF:11}"
+          else
+            echo "::set-output name=branch::"
+          fi
+          echo "::set-output name=is_release_tag::false"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF:10}"
+            if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+ ]]; then
+              echo "::set-output name=is_release_tag::true"
+            fi
+          fi
+        shell: bash # we use bash syntax, so this is VERY important
       - name: Log Environment
         run: |
           echo "event=${{ toJson(github.event) }}"
@@ -44,4 +59,6 @@ jobs:
           echo "committer_name=${{ steps.calc.outputs.committer_name }}"
           echo "committer_email=${{ steps.calc.outputs.committer_email }}"
           echo "is_head=${{ steps.calc.outputs.is_head }}"
+          echo "branch=${{ steps.calc.outputs.branch }}"
+          echo "is_release_tag=${{ steps.calc.outputs.is_release_tag }}"
           
