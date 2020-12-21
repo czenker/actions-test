@@ -119,18 +119,11 @@ jobs:
         with:
           name: artifact
           path: .
-      - run: |
-          TAG="${{ needs.setup.outputs.tag }}"
-          gh config set prompt disabled
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
-          if ! gh release view "$TAG"; then
-              echo "Creating release"
-              gh release create -d -t "$TAG" "$TAG"
-          fi
-
-          echo "Uploading artifact"
-          ARTIFACT_NAME="version-${{ needs.setup.outputs.build_name }}.txt"
-          mv version.txt "${ARTIFACT_NAME}"
-          gh release upload --clobber "$TAG" "${ARTIFACT_NAME}"
-
+      - uses: meeDamian/github-release@2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.setup.outputs.tag }}
+          draft: true
+          files: |
+            version.txt
+          gzip: false
