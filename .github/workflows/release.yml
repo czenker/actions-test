@@ -1,0 +1,30 @@
+name: build
+on: [ "push" ]
+env: ~
+defaults:
+  run:
+    shell: bash
+jobs:
+  # ###
+  #  
+  # Detect the version number to use
+  # 
+  # ###
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      build_name: ${{ steps.calc.outputs.build_name }}
+
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # don't shallow clone! We could not generate a nice build_name otherwise
+      - name: Generate build_name
+        id: calc
+        run: |
+          echo "::set-output name=build_name::$(git describe --tags --always)"
+      - name: Output
+        run: |
+          echo "build_name=${{ steps.build_name.outputs.build_name }}"
+          echo "event=${{ toJson(github.event) }}"
