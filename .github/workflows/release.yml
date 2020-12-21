@@ -73,7 +73,7 @@ jobs:
     steps:
       - name: Generate a fake artifact
         run: |
-          echo "${{ steps.setup.outputs.build_name }}" > version.txt
+          echo "${{ needs.setup.outputs.build_name }}" > version.txt
       - name: Archive artifact
         uses: actions/upload-artifact@v2
         with:
@@ -98,7 +98,7 @@ jobs:
           aws-region: ${{ env.AWS_S3_NIGHTLY_REGION }}
       - name: push artifact
         run: |
-          ARTIFACT_NAME="version-${{ steps.setup.build_name }}.txt"
+          ARTIFACT_NAME="version-${{ needs.setup.ouptputs.build_name }}.txt"
           mv version.txt "${ARTIFACT_NAME}"
           aws s3 cp "${ARTIFACT_NAME}" "s3://${AWS_S3_NIGHTLY_BUCKET}/${ARTIFACT_NAME}" --acl public-read
           echo "::warning ::Your artifacts are available at ${AWS_S3_NIGHTLY_BASEURI}/${ARTIFACT_NAME} for the next days."
