@@ -4,7 +4,7 @@ on:
     branches: 
       - '**'
     tags:
-      - v[0-9]+.[0-9]+*
+      - v[0-9]+.[0-9]+.[0-9]+*
 defaults:
   run:
     shell: bash
@@ -28,7 +28,7 @@ jobs:
       committer_email: ${{ steps.calc.outputs.committer_email }}
       is_head: ${{ steps.calc.outputs.is_head }}
       branch: ${{ steps.calc.outputs.branch }}
-      is_release_tag: ${{ steps.calc.outputs.is_release_tag }}
+      tag: ${{ steps.calc.outputs.tag }}
 
     steps:
       - name: Checkout the source code
@@ -48,9 +48,9 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/heads/* ]]; then
             echo "::set-output name=branch::${GITHUB_REF:11}"
           fi
-          echo "::set-output name=is_release_tag::false"
+          echo "::set-output name=tag::"
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "::set-output name=is_release_tag::true"
+            echo "::set-output name=tag::${GITHUB_REF:10}"
           fi
         shell: bash # we use bash syntax, so this is VERY important
       - name: Log Environment
@@ -65,7 +65,7 @@ jobs:
           echo "committer_email=${{ steps.calc.outputs.committer_email }}"
           echo "is_head=${{ steps.calc.outputs.is_head }}"
           echo "branch=${{ steps.calc.outputs.branch }}"
-          echo "is_release_tag=${{ steps.calc.outputs.is_release_tag }}"
+          echo "tag=${{ steps.calc.outputs.tag }}"
           
   build:
     runs-on: ubuntu-latest
@@ -98,13 +98,34 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_S3_NIGHTLY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_S3_NIGHTLY_KEY }}
           aws-region: ${{ env.AWS_S3_NIGHTLY_REGION }}
-      - name: push artifact
+      - name: Push artifact to AWS S3
         run: |
           ARTIFACT_NAME="version-${{ needs.setup.outputs.build_name }}.txt"
           mv version.txt "${ARTIFACT_NAME}"
           aws s3 cp "${ARTIFACT_NAME}" "s3://${AWS_S3_NIGHTLY_BUCKET}/${ARTIFACT_NAME}" --acl public-read
           echo "::warning ::Your artifacts are available at ${AWS_S3_NIGHTLY_BASEURI}/${ARTIFACT_NAME} for the next days."
 
+  release:
+    runs-on: ubuntu-latest
+    if: ${{ needs.setup.outputs.tag != "" }}
+    needs: 
+      - setup
+      - build
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: .
+      - run: |
+          TAG="${{ needs.build.outputs.tag }}"
+          gh config set prompt disabled
 
+          if ! gh release view "$TAG"; then
+              # tag does not exist
+              gh release create "$TAG" -d -t "$TAG"
+          fi
 
+          ARTIFACT_NAME="version-${{ needs.setup.outputs.build_name }}.txt"
+          mv version.txt "${ARTIFACT_NAME}"
+          gh release upload --clobber "$TAG" "${ARTIFACT_NAME}"
 
