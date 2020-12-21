@@ -17,6 +17,7 @@ jobs:
       author_email: ${{ steps.calc.outputs.author_email }}
       committer_name: ${{ steps.calc.outputs.committer_name }}
       committer_email: ${{ steps.calc.outputs.committer_email }}
+      is_head: ${{ steps.calc.outputs.is_head }}
 
     steps:
       - name: Checkout the source code
@@ -26,23 +27,21 @@ jobs:
       - name: Generate parameters
         id: calc
         run: |
-          BUILD_NAME=$(git describe --tags --always)
-          AUTHOR_NAME="${{ github.event.commits[0].author.name }}"
-          AUTHOR_EMAIL="${{ github.event.commits[0].author.email }}"
-          COMMITTER_NAME="${{ github.event.commits[0].committer.name }}"
-          COMMITTER_EMAIL="${{ github.event.commits[0].committer.email }}"
-
-          echo "::set-output name=build_name::$BUILD_NAME"
-          echo "::set-output name=author_name::$AUTHOR_NAME"
-          echo "::set-output name=author_email::$AUTHOR_EMAIL"
-          echo "::set-output name=commiter_name::$COMMITTER_NAME"
-          echo "::set-output name=commiter_email::$COMMITTER_EMAIL"
-
-          echo "build_name=$BUILD_NAME"
-          echo "author_name=$AUTHOR_NAME"
-          echo "author_email=$AUTHOR_EMAIL"
-          echo "commiter_name=$COMMITTER_NAME"
-          echo "commiter_email=$COMMITTER_EMAIL"
+          echo "::set-output name=build_name::$(git describe --tags --always)"
+          echo "::set-output name=author_name::${{ github.event.commits[0].author.name }}"
+          echo "::set-output name=author_email::${{ github.event.commits[0].author.email }}"
+          echo "::set-output name=commiter_name::${{ github.event.commits[0].committer.name }}"
+          echo "::set-output name=commiter_email::${{ github.event.commits[0].committer.email }}"
+          echo "::set-output name=is_head::${{ github.event.commits[0].id == github.event.head_commit.id }}"
       - name: Log Environment
         run: |
           echo "event=${{ toJson(github.event) }}"
+      - name: Output
+        run: |
+          echo "build_name=${{ steps.calc.outputs.build_name }}"
+          echo "author_name=${{ steps.calc.outputs.author_name }}"
+          echo "author_email=${{ steps.calc.outputs.author_email }}"
+          echo "committer_name=${{ steps.calc.outputs.committer_name }}"
+          echo "committer_email=${{ steps.calc.outputs.committer_email }}"
+          echo "is_head=${{ steps.calc.outputs.is_head }}"
+          
