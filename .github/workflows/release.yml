@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build_name: ${{ steps.calc.outputs.build_name }}
+      author_name: ${{ steps.calc.outputs.author_name }}
+      author_email: ${{ steps.calc.outputs.author_email }}
+      committer_name: ${{ steps.calc.outputs.committer_name }}
+      committer_email: ${{ steps.calc.outputs.committer_email }}
 
     steps:
       - name: Checkout the source code
@@ -23,7 +27,18 @@ jobs:
         id: calc
         run: |
           echo "::set-output name=build_name::$(git describe --tags --always)"
+          echo "::set-output name=author_name::${{ github.event.commits[0].author.name }}"
+          echo "::set-output name=author_email::${{ github.event.commits[0].author.email }}"
+          echo "::set-output name=commiter_name::${{ github.event.commits[0].committer.name }}"
+          echo "::set-output name=commiter_email::${{ github.event.commits[0].committer.email }}"
+      - name: Log Environment
+        run: |
+          echo "event=${{ toJson(github.event) }}"
       - name: Output
         run: |
           echo "build_name=${{ steps.build_name.outputs.build_name }}"
-          echo "event=${{ toJson(github.event) }}"
+          echo "author_name=${{ steps.build_name.outputs.author_name }}"
+          echo "author_email=${{ steps.build_name.outputs.author_email }}"
+          echo "committer_name=${{ steps.build_name.outputs.committer_name }}"
+          echo "committer_email=${{ steps.build_name.outputs.committer_email }}"
+          
