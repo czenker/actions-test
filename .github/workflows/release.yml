@@ -84,9 +84,7 @@ jobs:
 
   nightly:
     runs-on: ubuntu-latest
-    needs: 
-      - setup
-      - build
+    needs: build
     steps:
       - uses: actions/download-artifact@v2
         with:
@@ -100,7 +98,7 @@ jobs:
           aws-region: ${{ env.AWS_S3_NIGHTLY_REGION }}
       - name: push artifact
         run: |
-          ARTIFACT_NAME="version-${{ needs.setup.ouptputs.build_name }}.txt"
+          ARTIFACT_NAME="version-${{ needs.setup.outputs.build_name }}.txt"
           mv version.txt "${ARTIFACT_NAME}"
           aws s3 cp "${ARTIFACT_NAME}" "s3://${AWS_S3_NIGHTLY_BUCKET}/${ARTIFACT_NAME}" --acl public-read
           echo "::warning ::Your artifacts are available at ${AWS_S3_NIGHTLY_BASEURI}/${ARTIFACT_NAME} for the next days."
