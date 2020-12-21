@@ -38,7 +38,14 @@ jobs:
       - name: Generate parameters
         id: calc
         run: |
-          echo "::set-output name=build_name::$(git describe --tags --always)"
+          TAG=""
+          BUILD_NAME="$(git describe --tags --always)"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF:10}"
+            BUILD_NAME="${GITHUB_REF:10}"
+          fi
+          echo "::set-output name=tag::$TAG"
+          echo "::set-output name=build_name::$BUILD_NAME"
           echo "::set-output name=author_name::${{ github.event.commits[0].author.name }}"
           echo "::set-output name=author_email::${{ github.event.commits[0].author.email }}"
           echo "::set-output name=committer_name::${{ github.event.commits[0].committer.name }}"
@@ -47,10 +54,6 @@ jobs:
           echo "::set-output name=branch::"
           if [[ "${GITHUB_REF}" == refs/heads/* ]]; then
             echo "::set-output name=branch::${GITHUB_REF:11}"
-          fi
-          echo "::set-output name=tag::"
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "::set-output name=tag::${GITHUB_REF:10}"
           fi
         shell: bash # we use bash syntax, so this is VERY important
       - name: Log Environment
