@@ -73,12 +73,12 @@ jobs:
     steps:
       - name: Generate a fake artifact
         run: |
-          echo "${{ needs.setup.outputs.build_name }}" > version.txt
+          echo "${{ needs.setup.outputs.build_name }}" > version-${{ needs.setup.outputs.build_name }}.txt
       - name: Archive artifact
         uses: actions/upload-artifact@v2
         with:
           name: artifact
-          path: "./version.txt"
+          path: "./version-${{ needs.setup.outputs.build_name }}.txt"
           if-no-files-found: error
           retention-days: 1
 
@@ -100,10 +100,8 @@ jobs:
           aws-region: ${{ env.AWS_S3_NIGHTLY_REGION }}
       - name: Push artifact to AWS S3
         run: |
-          ARTIFACT_NAME="version-${{ needs.setup.outputs.build_name }}.txt"
-          mv version.txt "${ARTIFACT_NAME}"
-          aws s3 cp "${ARTIFACT_NAME}" "s3://${AWS_S3_NIGHTLY_BUCKET}/${ARTIFACT_NAME}" --acl public-read
-          echo "::warning ::Your artifacts are available at ${AWS_S3_NIGHTLY_BASEURI}/${ARTIFACT_NAME} for the next days."
+          aws s3 cp "version-${{ needs.setup.outputs.build_name }}.txt" "s3://${AWS_S3_NIGHTLY_BUCKET}/${ARTIFACT_NAME}" --acl public-read
+          echo "::warning ::Your artifacts are available at ${AWS_S3_NIGHTLY_BASEURI}/version-${{ needs.setup.outputs.build_name }}.txt for the next days."
 
   release:
     runs-on: ubuntu-latest
@@ -123,7 +121,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ needs.setup.outputs.tag }}
+          name: ${{ needs.setup.outputs.tag }}
+          # no regex possible, so we test for the most likely cases that deviate from the "va.b.c" pattern
+          prerelease: ${{ contains(needs.setup.outputs.tag, '-') || contains(needs.setup.outputs.tag, '+') || contains(needs.setup.outputs.tag, 'alpha') || contains(needs.setup.outputs.tag, 'beta') || contains(needs.setup.outputs.tag, 'rc') }}
           draft: true
           files: |
-            version.txt
+            version-${{ needs.setup.outputs.build_name }}.txt
           gzip: false
