@@ -42,8 +42,7 @@ jobs:
           fi
           echo "::set-output name=is_release_tag::false"
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            TAG=${GITHUB_REF:10}"
-            if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+ ]]; then
+            if [[ "${GITHUB_REF:10}" =~ ^v[0-9]+\.[0-9]+ ]]; then
               echo "::set-output name=is_release_tag::true"
             fi
           fi
