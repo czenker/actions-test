@@ -9,9 +9,9 @@ defaults:
   run:
     shell: bash
 env:
-  AWS_S3_NIGHTLY_BASEURI=https://wifi-tally-nightly.s3.eu-central-1.amazonaws.com
-  AWS_S3_NIGHTLY_BUCKET=wifi-tally-nightly
-  AWS_S3_NIGHTLY_REGION=eu-central-1
+  AWS_S3_NIGHTLY_BASEURI: https://wifi-tally-nightly.s3.eu-central-1.amazonaws.com
+  AWS_S3_NIGHTLY_BUCKET: wifi-tally-nightly
+  AWS_S3_NIGHTLY_REGION: eu-central-1
 jobs:
   # ###
   #  
