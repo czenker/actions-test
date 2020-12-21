@@ -1,8 +1,8 @@
 name: build
 on: 
   push: 
-#    branches: 
-#      - '**'
+    branches: 
+      - '**'
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
 defaults:
@@ -83,7 +83,7 @@ jobs:
           name: artifact
           path: "./version-${{ needs.setup.outputs.build_name }}.txt"
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 0.001
 
   nightly:
     runs-on: ubuntu-latest
