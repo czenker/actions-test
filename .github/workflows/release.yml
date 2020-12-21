@@ -23,22 +23,26 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0 # don't shallow clone! We could not generate a nice build_name otherwise
-      - name: Generate build_name
+      - name: Generate parameters
         id: calc
         run: |
-          echo "::set-output name=build_name::$(git describe --tags --always)"
-          echo "::set-output name=author_name::${{ github.event.commits[0].author.name }}"
-          echo "::set-output name=author_email::${{ github.event.commits[0].author.email }}"
-          echo "::set-output name=commiter_name::${{ github.event.commits[0].committer.name }}"
-          echo "::set-output name=commiter_email::${{ github.event.commits[0].committer.email }}"
+          BUILD_NAME=$(git describe --tags --always)
+          AUTHOR_NAME="${{ github.event.commits[0].author.name }}"
+          AUTHOR_EMAIL="${{ github.event.commits[0].author.email }}"
+          COMMITTER_NAME="${{ github.event.commits[0].committer.name }}"
+          COMMITTER_EMAIL="${{ github.event.commits[0].committer.email }}"
+
+          echo "::set-output name=build_name::$BUILD_NAME"
+          echo "::set-output name=author_name::$AUTHOR_NAME"
+          echo "::set-output name=author_email::$AUTHOR_EMAIL"
+          echo "::set-output name=commiter_name::$COMMITTER_NAME"
+          echo "::set-output name=commiter_email::$COMMITTER_EMAIL"
+
+          echo "build_name=$BUILD_NAME"
+          echo "author_name=$AUTHOR_NAME"
+          echo "author_email=$AUTHOR_EMAIL"
+          echo "commiter_name=$COMMITTER_NAME"
+          echo "commiter_email=$COMMITTER_EMAIL"
       - name: Log Environment
         run: |
           echo "event=${{ toJson(github.event) }}"
-      - name: Output
-        run: |
-          echo "build_name=${{ steps.build_name.outputs.build_name }}"
-          echo "author_name=${{ steps.build_name.outputs.author_name }}"
-          echo "author_email=${{ steps.build_name.outputs.author_email }}"
-          echo "committer_name=${{ steps.build_name.outputs.committer_name }}"
-          echo "committer_email=${{ steps.build_name.outputs.committer_email }}"
-          
