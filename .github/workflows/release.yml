@@ -35,10 +35,9 @@ jobs:
           echo "::set-output name=committer_name::${{ github.event.commits[0].committer.name }}"
           echo "::set-output name=committer_email::${{ github.event.commits[0].committer.email }}"
           echo "::set-output name=is_head::${{ github.event.commits[0].id == github.event.head_commit.id }}"
+          echo "::set-output name=branch::"
           if [[ "${GITHUB_REF}" == refs/heads/* ]]; then
             echo "::set-output name=branch::${GITHUB_REF:11}"
-          else
-            echo "::set-output name=branch::"
           fi
           echo "::set-output name=is_release_tag::false"
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
