@@ -1,8 +1,8 @@
 name: build
 on: 
   push: 
-    branches: 
-      - '**'
+#    branches: 
+#      - '**'
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
 defaults:
@@ -112,6 +112,9 @@ jobs:
       - setup
       - build
     steps:
+      - # gh knows its context when in a repo
+        name: Checkout the source code
+        uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: artifact
@@ -121,13 +124,13 @@ jobs:
           gh config set prompt disabled
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-          if ! gh release view --repo "${{ github.repository }}" "$TAG"; then
+          if ! gh release view "$TAG"; then
               echo "Creating release"
-              gh release create --repo "${{ github.repository }}" -d -t "$TAG" "$TAG"
+              gh release create -d -t "$TAG" "$TAG"
           fi
 
           echo "Uploading artifact"
           ARTIFACT_NAME="version-${{ needs.setup.outputs.build_name }}.txt"
           mv version.txt "${ARTIFACT_NAME}"
-          gh release upload --repo "${{ github.repository }}" --clobber "$TAG" "${ARTIFACT_NAME}"
+          gh release upload --clobber "$TAG" "${ARTIFACT_NAME}"
 
