@@ -16,7 +16,7 @@ env:
 jobs:
   # @see https://github.com/cypress-io/github-action
   cypress:
-    runs-on: ubuntu-20.04
+    runs-on: windows-latest
     steps:
       - # the source code is ONLY used to to get the cypress tests
         name: Checkout the source code
@@ -38,7 +38,7 @@ jobs:
           file_path = os.path.join(tmp_dir, file_name)
           dir_path = os.path.join(tmp_dir, dir_name)
 
-          print('downloading {}...'.format(url))
+          print('downloading {}'.format(url))
           response = requests.get(url)
 
           with open(file_path, 'wb') as f:
