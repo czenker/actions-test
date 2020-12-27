@@ -6,6 +6,9 @@ on:
         description: 'Branch'     
         required: true
         default: 'cypress'
+      source:
+        description: 'Source tar.gz'
+        required: true
 env:
   NODEJS_VERSION: 12
 defaults:
@@ -17,30 +20,36 @@ jobs:
   cypress:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout the source code
+      - # the source code is ONLY used to to get the cypress tests
+        name: Checkout the source code
         uses: actions/checkout@v2
         with: 
           repository: 'wifi-tally/wifi-tally'
           ref: "${{ github.event.inputs.branch }}"
           path: .
+      - run: |
+          wget -O "${{ github.event.inputs.source }}"
+          FILE_NAME=$(basename "${{ github.event.inputs.source }}")
+          DIR_NAME=$(basename "${{ github.event.inputs.source }}" ".tar.gz")
+
+          mkdir "${DIR_NAME}"
+          cd  "${DIR_NAME}"
+          
+          tar -xzf "../${FILE_NAME}"
+
+          mv "hub" "${GITHUB_WORKSPACE}/dist-hub"
       - name: Use node.js ${{ env.NODEJS_VERSION }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ env.NODEJS_VERSION }}
-      - name: Cypress run
+      - # this step also runs "npm ci" and takes care of caching
+        name: Cypress run
         uses: cypress-io/github-action@v2
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
         with:
-          start: npm run cypress:backend, npm run start:frontend
-          wait-on: 'http://localhost:3000, http://localhost:3001'
+          start: npm run start --prefix "${GITHUB_WORKSPACE}/dist-hub"-- --with-test
+          wait-on: 'http://localhost:3000'
           working-directory: ./hub
           record: true
-      - uses: actions/upload-artifact@v1
-        if: failure()
-        with:
-          name: cypress-screenshots
-          path: hub/cypress/screenshots
-
-
-  
+          tag: "node-${{ env.NODEJS_VERSION }}"
