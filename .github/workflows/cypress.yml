@@ -1,0 +1,30 @@
+name: cypress
+on: 
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch'     
+        required: true
+        default: 'cypress'
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # @see https://github.com/cypress-io/github-action
+  cypress:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@v2
+        repository: 'wifi-tally/wifi-tally'
+        ref: "${{ github.event.inputs.branch }}"
+      - run: npm ci
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          start: npm run cypress:backend, npm run start:frontend
+          wait-on: 'http://localhost:3000, http://localhost:3001'
+          
+
+  
