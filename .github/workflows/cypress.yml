@@ -47,7 +47,7 @@ jobs:
           start: npm run cypress:backend, npm run start:frontend
           wait-on: 'http://localhost:3000, http://localhost:3001'
           working-directory: ./hub
-          spec: cypress/integration/smoke.spec.js
+          spec: cypress/integration/smoke.spec.ts
       - uses: actions/upload-artifact@v1
         if: failure()
         with:
