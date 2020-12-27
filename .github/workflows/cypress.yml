@@ -28,7 +28,7 @@ jobs:
           ref: "${{ github.event.inputs.branch }}"
           path: .
       - run: |
-          wget -O "${{ github.event.inputs.source }}"
+          wget "${{ github.event.inputs.source }}"
           FILE_NAME=$(basename "${{ github.event.inputs.source }}")
           DIR_NAME=$(basename "${{ github.event.inputs.source }}" ".tar.gz")
 
