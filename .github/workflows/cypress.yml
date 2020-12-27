@@ -15,40 +15,6 @@ env:
 
 jobs:
   # @see https://github.com/cypress-io/github-action
-  cypress-linux:
-    on: false
-    runs-on: ubuntu-latest
-    steps:
-      - # the source code is ONLY used to to get the cypress tests
-        name: Checkout the source code
-        uses: actions/checkout@v2
-        with: 
-          repository: 'wifi-tally/wifi-tally'
-          ref: "${{ github.event.inputs.branch }}"
-      - run: |
-          wget "${{ github.event.inputs.source }}"
-          FILE_NAME=$(basename "${{ github.event.inputs.source }}")
-          DIR_NAME=$(basename "${{ github.event.inputs.source }}" ".tar.gz")
-
-          mkdir "${DIR_NAME}"
-          cd  "${DIR_NAME}"
-          
-          tar -xzf "../${FILE_NAME}"
-
-          mv "hub" "${GITHUB_WORKSPACE}/dist-hub"
-      - name: Use node.js ${{ env.NODEJS_VERSION }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ env.NODEJS_VERSION }}
-      - # this step also runs "npm ci" and takes care of caching
-        name: Cypress run
-        uses: cypress-io/github-action@v2
-        with:
-          start: "npm run start --prefix ${{ github.workspace }}/dist-hub -- --with-test"
-          wait-on: 'http://localhost:3000'
-          working-directory: ./hub
-          record: true
-          tag: "node-${{ env.NODEJS_VERSION }}, bundle-test"
   cypress:
     on: false
     runs-on: ubuntu-20.04
