@@ -16,7 +16,6 @@ env:
 jobs:
   # @see https://github.com/cypress-io/github-action
   cypress:
-    on: false
     runs-on: ubuntu-20.04
     steps:
       - # the source code is ONLY used to to get the cypress tests
