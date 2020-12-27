@@ -24,7 +24,7 @@ jobs:
         with: 
           repository: 'wifi-tally/wifi-tally'
           ref: "${{ github.event.inputs.branch }}"
-      - # a cross-platform way to download the artifact
+      - # a cross-platform way to download and extract the artifact
         id: hub
         run: |
           import requests
@@ -52,7 +52,7 @@ jobs:
 
           hub_dir = os.path.join(dir_path, "hub")
           print(hub_dir)
-          print('::set-output name="hubDir"::{}'.format(hub_dir))
+          print('::set-output name=hubDir::{}'.format(hub_dir))
         shell: python
       - name: Use node.js ${{ env.NODEJS_VERSION }}
         uses: actions/setup-node@v1
@@ -62,7 +62,7 @@ jobs:
         name: Cypress run
         uses: cypress-io/github-action@v2
         with:
-          start: "npm run start --prefix ${{ steps.hub.output.hubDir }} -- --with-test"
+          start: "npm run start --prefix ${{ steps.hub.outputs.hubDir }} -- --with-test"
           wait-on: 'http://localhost:3000'
           working-directory: ./hub
           record: true
