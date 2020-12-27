@@ -16,7 +16,7 @@ env:
 jobs:
   # @see https://github.com/cypress-io/github-action
   cypress:
-    runs-on: windows-latest
+    runs-on: macos-latest
     steps:
       - # the source code is ONLY used to to get the cypress tests
         name: Checkout the source code
