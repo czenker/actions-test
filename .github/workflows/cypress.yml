@@ -10,13 +10,30 @@ on:
         description: 'Source tar.gz'
         required: true
 env:
-  NODEJS_VERSION: 12
   CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
 
 jobs:
   # @see https://github.com/cypress-io/github-action
   cypress:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            node: 12
+            browser: chrome
+          - os: ubuntu-latest
+            node: 14
+            browser: chrome
+          - os: macos-latest
+            node: 14
+            browser: chrome
+          - os: windows-latest
+            node: 12
+            browser: edge
+          - os: windows-latest
+            node: 14
+            browser: edge
+    runs-on: "${{ matrix.os }}"
     steps:
       - # the source code is ONLY used to to get the cypress tests
         name: Checkout the source code
@@ -57,10 +74,10 @@ jobs:
           print(hub_dir)
           print('::set-output name=hubDir::{}'.format(hub_dir))
         shell: python
-      - name: Use node.js ${{ env.NODEJS_VERSION }}
+      - name: Use node.js ${{ matrix.node }}
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ env.NODEJS_VERSION }}
+          node-version: ${{ matrix.node }}
       - # this step also runs "npm ci" and takes care of caching
         name: Cypress run
         uses: cypress-io/github-action@v2
@@ -69,4 +86,5 @@ jobs:
           wait-on: 'http://localhost:3000'
           working-directory: ./hub
           record: true
-          tag: "node-${{ env.NODEJS_VERSION }}, bundle-test"
+          browser: ${{ matrix.browser }}
+          tag: "node-${{ matrix.node }},bundle-test,${{ matrix.os }},${{ matrix.browser }}"
