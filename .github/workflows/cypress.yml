@@ -11,14 +11,13 @@ on:
         required: true
 env:
   NODEJS_VERSION: 12
-defaults:
-  run:
-    shell: bash
+  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
 
 jobs:
   # @see https://github.com/cypress-io/github-action
-  cypress:
-    runs-on: ubuntu-20.04
+  cypress-linux:
+    on: false
+    runs-on: ubuntu-latest
     steps:
       - # the source code is ONLY used to to get the cypress tests
         name: Checkout the source code
@@ -44,11 +43,61 @@ jobs:
       - # this step also runs "npm ci" and takes care of caching
         name: Cypress run
         uses: cypress-io/github-action@v2
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
         with:
           start: "npm run start --prefix ${{ github.workspace }}/dist-hub -- --with-test"
           wait-on: 'http://localhost:3000'
           working-directory: ./hub
           record: true
-          tag: "node-${{ env.NODEJS_VERSION }}"
+          tag: "node-${{ env.NODEJS_VERSION }}, bundle-test"
+  cypress:
+    on: false
+    runs-on: ubuntu-20.04
+    steps:
+      - # the source code is ONLY used to to get the cypress tests
+        name: Checkout the source code
+        uses: actions/checkout@v2
+        with: 
+          repository: 'wifi-tally/wifi-tally'
+          ref: "${{ github.event.inputs.branch }}"
+      - # a cross-platform way to download the artifact
+        id: hub
+        run: |
+          import requests
+          import tarfile
+          import os
+
+          url = 'https://wifi-tally-nightly.s3.eu-central-1.amazonaws.com/wifi-tally-v0.1.0-91-g6b3608d.tar.gz'
+          tmp_dir = '/tmp'
+          file_name = os.path.basename(url)
+          dir_name = file_name[:-7]
+          file_path = os.path.join(tmp_dir, file_name)
+          dir_path = os.path.join(tmp_dir, dir_name)
+
+          print('downloading {}...'.format(url))
+          response = requests.get(url)
+
+          with open(file_path, 'wb') as f:
+              f.write(response.content)
+
+          print('created {}'.format(file_path))
+
+          tar = tarfile.open(file_path, "r:gz")
+          tar.extractall(path=dir_path)
+          tar.close()
+
+          print('::set-output name="hub-dir"::{}'.format(os.path.join(dir_path, "hub")))
+        with: 
+          shell: python
+      - name: Use node.js ${{ env.NODEJS_VERSION }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODEJS_VERSION }}
+      - # this step also runs "npm ci" and takes care of caching
+        name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          start: "npm run start --prefix ${{ steps.hub.output.hub-dir }} -- --with-test"
+          wait-on: 'http://localhost:3000'
+          working-directory: ./hub
+          record: true
+          tag: "node-${{ env.NODEJS_VERSION }}, bundle-test"
