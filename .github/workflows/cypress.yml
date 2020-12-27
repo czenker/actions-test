@@ -47,7 +47,7 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
         with:
-          start: npm run start --prefix "${{ github.workspace }}/dist-hub" -- --with-test
+          start: "npm run start --prefix ${{ github.workspace }}/dist-hub -- --with-test"
           wait-on: 'http://localhost:3000'
           working-directory: ./hub
           record: true
