@@ -52,8 +52,7 @@ jobs:
           tar.close()
 
           print('::set-output name="hub-dir"::{}'.format(os.path.join(dir_path, "hub")))
-        with: 
-          shell: python
+        shell: python
       - name: Use node.js ${{ env.NODEJS_VERSION }}
         uses: actions/setup-node@v1
         with:
