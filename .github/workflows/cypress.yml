@@ -24,7 +24,11 @@ jobs:
         with: 
           repository: 'wifi-tally/wifi-tally'
           ref: "${{ github.event.inputs.branch }}"
-      - # a cross-platform way to download and extract the artifact
+      - name: Install dependencies
+        run: |
+          python -m pip install requests
+          python -m pip install tarfile
+      - name: Download the artifact (cross-env)
         id: hub
         run: |
           import requests
