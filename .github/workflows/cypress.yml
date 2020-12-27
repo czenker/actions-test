@@ -34,11 +34,8 @@ jobs:
           import tarfile
           import os
 
-          url = "${{ github.event.inputs.source }}"
-          tmp_dir = "${{ runner.temp }}"
-          print(tmp_dir)
-          print("${{ runner.temp }}")
-          print('${{ runner.temp }}')
+          url = r"${{ github.event.inputs.source }}"
+          tmp_dir = r"${{ runner.temp }}"
           file_name = os.path.basename(url)
           dir_name = file_name[:-7]
           file_path = os.path.join(tmp_dir, file_name)
