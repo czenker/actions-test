@@ -22,12 +22,13 @@ jobs:
           ref: "${{ github.event.inputs.branch }}"
           path: .
       - run: npm ci
+        working-directory: ./hub
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           start: npm run cypress:backend, npm run start:frontend
           wait-on: 'http://localhost:3000, http://localhost:3001'
-          working-directory: .
+          working-directory: ./hub
 
 
   
