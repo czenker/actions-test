@@ -27,27 +27,16 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ env.NODEJS_VERSION }}
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
-      - run: npm ci
-        working-directory: ./hub
       - name: Cypress run
         uses: cypress-io/github-action@v2
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
         with:
-          install: false
           start: npm run cypress:backend, npm run start:frontend
           wait-on: 'http://localhost:3000, http://localhost:3001'
           working-directory: ./hub
           spec: cypress/integration/smoke.spec.ts
+          record: true
       - uses: actions/upload-artifact@v1
         if: failure()
         with:
