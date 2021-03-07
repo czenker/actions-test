@@ -47,6 +47,7 @@ jobs:
           hub_dir = os.path.join(dir_path, "hub")
           print(hub_dir)
           print('::set-output name=hubDir::{}'.format(hub_dir))
+          print('::set-output name=rootDir::{}'.format(dir_path))
         shell: python
       - name: npm ci
         run: npm ci --only=production --no-fund
@@ -54,25 +55,15 @@ jobs:
       - name: Package the artifact (cross-env)
         id: pack
         run: |
-          import zipfile
+          import shutil
           import os
           
           url = r"${{ github.event.inputs.source }}"
-          tmp_dir = r"${{ runner.temp }}"
           basename = os.path.basename(url)[:-7]
           
           output_filename = basename.replace("netinstall", "win") + ".zip"
           
-          def zipdir(path, ziph):
-            for root, dirs, files in os.walk(path):
-                for file in files:
-                    ziph.write(os.path.join(root, file), 
-                               os.path.relpath(os.path.join(root, file), 
-                                               os.path.join(path, '..')))
-
-          zipf = zipfile.ZipFile(output_filename, 'w', zipfile.ZIP_DEFLATED)
-          zipdir('.', zipf)
-          zipf.close()
+          shutil.make_archive(output_filename, 'zip', "${{ steps.hub.outputs.rootDir }}")
           
           print('::set-output name=artifact::{}'.format(output_filename))
         shell: python
