@@ -104,7 +104,7 @@ jobs:
       - bundle-os
     steps:
       - run: |
-          echo "${{ needs.bundle.outputs.artifact_win }}"
-          echo "${{ needs.bundle.outputs.artifact_mac }}"
-          wget "${{ needs.bundle.outputs.artifact_win }}"
-          wget "${{ needs.bundle.outputs.artifact_mac }}"
+          echo "${{ needs.bundle-os.outputs.artifact_win }}"
+          echo "${{ needs.bundle-os.outputs.artifact_mac }}"
+          wget "${{ needs.bundle-os.outputs.artifact_win }}"
+          wget "${{ needs.bundle-os.outputs.artifact_mac }}"
