@@ -97,3 +97,14 @@ jobs:
           print('::set-output name=artifact_{}_name::{}.zip'.format(r"${{ matrix.prefix }}", output_filename))
           print("::warning ::Artifact is available at {}/{}.zip for the next days.".format(s3_uri, output_filename))
         shell: python
+
+  release:
+    runs-on: ubuntu-latest
+    needs: 
+      - bundle-os
+    steps:
+      - run: |
+          echo "${{ needs.bundle.outputs.artifact_win }}"
+          echo "${{ needs.bundle.outputs.artifact_mac }}"
+          wget "${{ needs.bundle.outputs.artifact_win }}"
+          wget "${{ needs.bundle.outputs.artifact_mac }}"
