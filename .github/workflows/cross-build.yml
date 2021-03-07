@@ -67,7 +67,7 @@ jobs:
           
           shutil.make_archive(output_filename, 'zip', r"${{ steps.hub.outputs.rootDir }}")
           
-          os.system('aws s3 cp "{artifact}" "s3://{bucket}/{artifact}" --acl public-read'.format(artifact=output_filename+'.zip', bucket=AWS_S3_NIGHTLY_BASEURI)
+          os.system('aws s3 cp "{artifact}" "s3://{bucket}/{artifact}" --acl public-read'.format(artifact=output_filename+'.zip', bucket=AWS_S3_NIGHTLY_BASEURI))
           
           print('::set-output name=artifact::{}'.format(output_filename))
           print("::warning ::Artifact is available at {}/{}.zip for the next days.".format(AWS_S3_NIGHTLY_BASEURI, output_filename))
