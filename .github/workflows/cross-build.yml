@@ -7,6 +7,9 @@ on:
         required: true
 env:
   NODEJS_VERSION: 12
+  AWS_S3_NIGHTLY_BASEURI: https://wifi-tally-nightly.s3.eu-central-1.amazonaws.com
+  AWS_S3_NIGHTLY_BUCKET: wifi-tally-nightly
+  AWS_S3_NIGHTLY_REGION: eu-central-1
 jobs:
   window:
     runs-on: windows-latest
@@ -17,7 +20,7 @@ jobs:
           node-version: ${{ env.NODEJS_VERSION }}
       - name: Install dependencies
         run: |
-          python -m pip install requests
+          python -m pip install requests boto3
       - name: Download the artifact (cross-env)
         id: hub
         run: |
@@ -52,13 +55,21 @@ jobs:
       - name: npm ci
         run: npm ci --only=production --no-fund
         working-directory: ${{ steps.hub.outputs.hubDir }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_S3_NIGHTLY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_S3_NIGHTLY_KEY }}
+          aws-region: ${{ env.AWS_S3_NIGHTLY_REGION }}
       - name: Package the artifact (cross-env)
         id: pack
         run: |
           import shutil
           import os
+          import boto3
           
-          AWS_S3_NIGHTLY_BASEURI = os.getenv("AWS_S3_NIGHTLY_BASEURI", "")
+          bucket = os.getenv("AWS_S3_NIGHTLY_BUCKET")
+          s3_uri = os.getenv("AWS_S3_NIGHTLY_BASEURI")
           
           url = r"${{ github.event.inputs.source }}"
           basename = os.path.basename(url)[:-7]
@@ -67,10 +78,16 @@ jobs:
           
           shutil.make_archive(output_filename, 'zip', r"${{ steps.hub.outputs.rootDir }}")
           
-          os.system('aws s3 cp "{artifact}" "s3://{bucket}/{artifact}" --acl public-read'.format(artifact=output_filename+'.zip', bucket=AWS_S3_NIGHTLY_BASEURI))
+          # Upload the file
+          s3 = boto3.client('s3')
+          try:
+              response = s3.upload_file(output_filename+".zip", bucket, output_filename+".zip")
+          except ClientError as e:
+              logging.error(e)
+              os.exit(1)
           
           print('::set-output name=artifact::{}'.format(output_filename))
-          print("::warning ::Artifact is available at {}/{}.zip for the next days.".format(AWS_S3_NIGHTLY_BASEURI, output_filename))
+          print("::warning ::Artifact is available at {}/{}.zip for the next days.".format(s3_uri, output_filename))
         shell: python
       
       - name: Archive
