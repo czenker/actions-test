@@ -1,0 +1,54 @@
+name: cross-build
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Source netinstall.tar.gz (from S3 or releases)'
+        required: true
+env:
+  NODEJS_VERSION: 12
+jobs:
+  window:
+    runs-on: windows-latest
+    steps:
+      - name: Use node.js ${{ env.NODEJS_VERSION }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODEJS_VERSION }}
+      - name: Install dependencies
+        run: |
+          python -m pip install requests
+      - name: Download the artifact (cross-env)
+        id: hub
+        run: |
+          import requests
+          import tarfile
+          import os
+
+          url = r"${{ github.event.inputs.source }}"
+          tmp_dir = r"${{ runner.temp }}"
+          file_name = os.path.basename(url)
+          dir_name = file_name[:-7]
+          file_path = os.path.join(tmp_dir, file_name)
+          dir_path = os.path.join(tmp_dir, dir_name)
+
+          print('downloading {}'.format(url))
+          response = requests.get(url)
+
+          with open(file_path, 'wb') as f:
+              f.write(response.content)
+
+          print('created {}'.format(file_path))
+
+          tar = tarfile.open(file_path, "r:gz")
+          tar.extractall(path=dir_path)
+          tar.close()
+
+          hub_dir = os.path.join(dir_path, "hub")
+          print(hub_dir)
+          print('::set-output name=hubDir::{}'.format(hub_dir))
+        shell: python
+      - name: npm ci
+        run: npm ci --only=production --no-fund
+        working-directory: ${{ steps.hub.outputs.hubDir }}
+    
