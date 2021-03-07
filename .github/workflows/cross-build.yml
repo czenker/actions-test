@@ -63,7 +63,7 @@ jobs:
           
           output_filename = basename.replace("netinstall", "win") + ".zip"
           
-          shutil.make_archive(output_filename, 'zip', "${{ steps.hub.outputs.rootDir }}")
+          shutil.make_archive(output_filename, 'zip', r"${{ steps.hub.outputs.rootDir }}")
           
           print('::set-output name=artifact::{}'.format(output_filename))
         shell: python
