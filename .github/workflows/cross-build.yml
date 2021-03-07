@@ -11,8 +11,21 @@ env:
   AWS_S3_NIGHTLY_BUCKET: wifi-tally-nightly
   AWS_S3_NIGHTLY_REGION: eu-central-1
 jobs:
-  window:
-    runs-on: windows-latest
+  bundle-os:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            prefix: mac
+          - os: windows-latest
+            prefix: win
+    runs-on: "${{ matrix.os }}"
+    outputs:
+      artifact_win: ${{ steps.pack.outputs.artifact_win }}
+      artifact_win_name: ${{ steps.pack.outputs.artifact_win_name }}
+      artifact_mac: ${{ steps.pack.outputs.artifact_mac }}
+      artifact_mac_name: ${{ steps.pack.outputs.artifact_mac_name }}
     steps:
       - name: Use node.js ${{ env.NODEJS_VERSION }}
         uses: actions/setup-node@v1
@@ -27,26 +40,20 @@ jobs:
           import requests
           import tarfile
           import os
-
           url = r"${{ github.event.inputs.source }}"
           tmp_dir = r"${{ runner.temp }}"
           file_name = os.path.basename(url)
           dir_name = file_name[:-7]
           file_path = os.path.join(tmp_dir, file_name)
           dir_path = os.path.join(tmp_dir, dir_name)
-
           print('downloading {}'.format(url))
           response = requests.get(url)
-
           with open(file_path, 'wb') as f:
               f.write(response.content)
-
           print('created {}'.format(file_path))
-
           tar = tarfile.open(file_path, "r:gz")
           tar.extractall(path=dir_path)
           tar.close()
-
           hub_dir = os.path.join(dir_path, "hub")
           print(hub_dir)
           print('::set-output name=hubDir::{}'.format(hub_dir))
@@ -67,17 +74,17 @@ jobs:
           import shutil
           import os
           import boto3
-          
+
           bucket = os.getenv("AWS_S3_NIGHTLY_BUCKET")
           s3_uri = os.getenv("AWS_S3_NIGHTLY_BASEURI")
-          
+
           url = r"${{ github.event.inputs.source }}"
           basename = os.path.basename(url)[:-7]
-          
-          output_filename = basename.replace("netinstall", "win")
-          
+
+          output_filename = basename.replace("netinstall", r"${{ matrix.prefix }}")
+
           shutil.make_archive(output_filename, 'zip', r"${{ steps.hub.outputs.rootDir }}")
-          
+
           # Upload the file
           s3 = boto3.client('s3')
           try:
@@ -85,16 +92,8 @@ jobs:
           except ClientError as e:
               logging.error(e)
               os.exit(1)
-          
-          print('::set-output name=artifact::{}'.format(output_filename))
+
+          print('::set-output name=artifact_{}::{}/{}.zip'.format(r"${{ matrix.prefix }}", s3_uri, output_filename))
+          print('::set-output name=artifact_{}_name::{}.zip'.format(r"${{ matrix.prefix }}", output_filename))
           print("::warning ::Artifact is available at {}/{}.zip for the next days.".format(s3_uri, output_filename))
         shell: python
-      
-      - name: Archive
-        uses: actions/upload-artifact@v2
-        with:
-          name: win
-          path: "*.zip"
-          if-no-files-found: error
-          retention-days: 1
-        
