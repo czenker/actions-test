@@ -81,7 +81,7 @@ jobs:
           # Upload the file
           s3 = boto3.client('s3')
           try:
-              response = s3.upload_file(output_filename+".zip", bucket, output_filename+".zip")
+              response = s3.upload_file(output_filename+".zip", bucket, output_filename+".zip", ExtraArgs={'ACL': 'public-read'})
           except ClientError as e:
               logging.error(e)
               os.exit(1)
